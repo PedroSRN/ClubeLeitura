@@ -16,11 +16,29 @@ namespace ClubeLeitura.ConsoleApp
     {
         static void Main(string[] args)
         {
+            
+
             TelaMenuPrincipal menuPrincipal = new TelaMenuPrincipal();
             TelaCadastroCaixa telaCadastroCaixa = new TelaCadastroCaixa();
-            telaCadastroCaixa.caixas = new Caixa[10];
-            telaCadastroCaixa.notificador = new Notificador();
+            TelaCadastroAmigo telaCadastroAmigo = new TelaCadastroAmigo();
+            
+            RepositorioCaixa repositorioCaixa = new RepositorioCaixa();
+            repositorioCaixa.caixas = new Caixa[10];
+            telaCadastroCaixa.repositorioCaixa = repositorioCaixa;
 
+
+            RepositorioAmigo repositorioAmigo = new RepositorioAmigo();
+            repositorioAmigo.amigos = new Amigo[10];
+            telaCadastroAmigo.repositorioAmigo = repositorioAmigo;
+
+
+            Notificador notificador = new Notificador();
+            telaCadastroCaixa.notificador = notificador;
+
+            telaCadastroAmigo.notificador = notificador;
+            
+            
+            
             while (true)
             {                
                 string opcaoMenuPrincipal = menuPrincipal.MostrarOpcoes();
@@ -43,8 +61,41 @@ namespace ClubeLeitura.ConsoleApp
                     }
                     else if (opcao == "4")
                     {
-                        telaCadastroCaixa.VisualizarCaixas("Tela");
+                        
+                        bool temCaixasCadastradas = telaCadastroCaixa.VisualizarCaixas("Tela");
+
+                        if (temCaixasCadastradas == false)
+                        {
+                            notificador.ApresentarMensagem("Nenhuma caixa foi cadastrada", "Atencao");
+                        }
                         Console.ReadLine(); 
+                    }
+                }
+                if (opcaoMenuPrincipal == "3")
+                {
+                    string opcao = telaCadastroAmigo.MostrarOpcoes();
+
+                    if (opcao == "1")
+                    {
+                        telaCadastroAmigo.InserirNovoAmigo();
+                    }
+                    else if (opcao == "2")
+                    {
+                        telaCadastroAmigo.EditarAmigo();
+                    }
+                    else if (opcao == "3")
+                    {
+                        telaCadastroAmigo.ExcluirAmigo();
+                    }
+                    else if (opcao == "4")
+                    {
+                        bool temAmigosCadastrados = telaCadastroAmigo.VisualizarAmigo("Tela");
+
+                        if (temAmigosCadastrados == false)
+                        {
+                            notificador.ApresentarMensagem("Nenhum amigo foi cadastrado", "Atencao");
+                        }
+                        Console.ReadLine();
                     }
                 }
             }

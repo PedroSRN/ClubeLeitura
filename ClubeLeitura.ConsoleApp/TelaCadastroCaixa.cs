@@ -5,17 +5,14 @@ namespace ClubeLeitura.ConsoleApp
 {
     public class TelaCadastroCaixa
     {
-        public Caixa[] caixas;
-        public int numeroCaixa;
-        public Notificador notificador;
-
+        public int numeroCaixa; //controlar o número da caixas cadastradas
+        public Notificador notificador;//reponsável pelas mensagens pro usuário
+        public RepositorioCaixa repositorioCaixa;
         public string MostrarOpcoes()
         {
             Console.Clear();
 
-            Console.WriteLine("Cadastro de Caixas");
-
-            Console.WriteLine();
+            MostrarTitulo("Cadastro de Caixas");
 
             Console.WriteLine("Digite 1 para Inserir");
             Console.WriteLine("Digite 2 para Editar");
@@ -33,14 +30,12 @@ namespace ClubeLeitura.ConsoleApp
         {
             MostrarTitulo("Inserindo nova Caixa");
 
-            Caixa caixa = ObterCaixa();
+            Caixa novaCaixa = ObterCaixa();
 
-            caixa.numero = ++numeroCaixa;
-
-            int posicaoVazia = ObterPosicaoVazia();
-            caixas[posicaoVazia] = caixa;
+            repositorioCaixa.Inserir(novaCaixa);
 
             notificador.ApresentarMensagem("Caixa inserida com sucesso!", "Sucesso");
+            
         }
 
         private Caixa ObterCaixa()
@@ -50,6 +45,22 @@ namespace ClubeLeitura.ConsoleApp
 
             Console.Write("Digite a etiqueta: ");
             string etiqueta = Console.ReadLine();
+
+            bool etiquetaJaUtilizada;
+
+            do
+            {
+                etiquetaJaUtilizada = repositorioCaixa.EtiquetaJaUtilizada(etiqueta);
+
+                if (etiquetaJaUtilizada)
+                {
+                    notificador.ApresentarMensagem("Etiqueta já utilizada, por gentileza informe outra", "Erro");
+
+                    Console.Write("Digite a etiqueta: ");
+                    etiqueta = Console.ReadLine();
+                }
+
+            } while (etiquetaJaUtilizada);
 
             Caixa caixa = new Caixa();
 
@@ -63,27 +74,91 @@ namespace ClubeLeitura.ConsoleApp
         {
             MostrarTitulo("Editando Caixa");
 
-            VisualizarCaixas("Pesquisando");
+            bool temCaixasCadastradas = VisualizarCaixas("Pesquisando");
 
-            Console.Write("Digite o número da caixa que deseja editar: ");
-            int numeroCaixa = Convert.ToInt32(Console.ReadLine());
-
-            for (int i = 0; i < caixas.Length; i++)
+            if (temCaixasCadastradas == false)
             {
-                if (caixas[i].numero == numeroCaixa)
-                {
-                    Caixa caixa = ObterCaixa();
-
-                    caixas[i].numero = numeroCaixa;
-                    caixas[i] = caixa;
-
-                    break;
-                }
+                notificador.ApresentarMensagem("Nenhuma caixa foi cadastrada Para poder Editar!!", "Atencao");
+                return;
             }
+
+            int numeroCaixa = ObterNumeroCaixa();
+
+            Caixa caixaAtualizada = ObterCaixa();
+
+            repositorioCaixa.Editar(numeroCaixa, caixaAtualizada);
 
             notificador.ApresentarMensagem("Caixa editada com sucesso", "Sucesso");
         }
 
+        private int ObterNumeroCaixa()
+        {
+            int numeroCaixa;
+            bool numeroCaixaEncontrado;
+            do
+            {
+                Console.Write("Digite o número da caixa que deseja editar: ");
+                numeroCaixa = Convert.ToInt32(Console.ReadLine());
+
+                numeroCaixaEncontrado = repositorioCaixa.VerificarNumeroCaixaExiste(numeroCaixa);
+                
+                if (numeroCaixaEncontrado == false)
+                {
+                    notificador.ApresentarMensagem("Número da caixa não encontrado, digite novamente", "Atencao");
+                }
+
+            } while (numeroCaixaEncontrado == false);
+            return numeroCaixa;
+        }
+
+       
+
+        public void ExcluirCaixa()
+        {
+            MostrarTitulo("Excluindo Caixa");
+
+            bool temCaixasCadastradas = VisualizarCaixas("Pesquisando");
+
+            if(temCaixasCadastradas == false)
+            {
+                notificador.ApresentarMensagem("Nenhuma caixa foi cadastrada Para poder Excluir!!", "Atencao");
+                return;
+            }
+
+            int numeroCaixa = ObterNumeroCaixa();
+
+            repositorioCaixa.Excluir(numeroCaixa);
+            
+            notificador.ApresentarMensagem("Caixa excluída com sucesso", "Sucesso");
+        }
+
+        public bool VisualizarCaixas(string tipo)
+        {
+            if (tipo == "Tela")
+            {
+                MostrarTitulo("Visualização de Caixas");
+            }
+
+            Caixa[] caixas = repositorioCaixa.SelecionarTodos();
+
+            if (caixas.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < caixas.Length; i++)
+            {
+                Caixa c = caixas[i];
+
+                Console.WriteLine("Número: " + c.numero);
+                Console.WriteLine("Cor: " + c.cor);
+                Console.WriteLine("Etiqueta: " + c.etiqueta);
+
+                Console.WriteLine();
+              
+            }
+            return true;
+        }
         public void MostrarTitulo(string titulo)
         {
             Console.Clear();
@@ -93,58 +168,5 @@ namespace ClubeLeitura.ConsoleApp
             Console.WriteLine();
         }
 
-        public void ExcluirCaixa()
-        {
-            MostrarTitulo("Excluindo Caixa");
-
-            VisualizarCaixas("Pesquisando");
-
-            Console.Write("Digite o número da caixa que deseja excluir: ");
-            int numeroCaixa = Convert.ToInt32(Console.ReadLine());
-
-            for (int i = 0; i < caixas.Length; i++)
-            {
-                if (caixas[i].numero == numeroCaixa)
-                {
-                    caixas[i] = null;
-                    break;
-                }
-            }
-
-            notificador.ApresentarMensagem("Caixa excluída com sucesso", "Sucesso");
-        }
-
-        public void VisualizarCaixas(string tipo)
-        {
-            if (tipo == "Tela")
-                MostrarTitulo("Visualização de Revistas");
-
-            for (int i = 0; i < caixas.Length; i++)
-            {
-                if (caixas[i] == null)
-                    continue;
-
-                Caixa c = caixas[i];
-
-                Console.WriteLine("Número: " + c.numero);
-                Console.WriteLine("Cor: " + c.cor);
-                Console.WriteLine("Etiqueta: " + c.etiqueta);
-
-                Console.WriteLine();
-            }
-        }
-
-        public int ObterPosicaoVazia()
-        {
-            for (int i = 0; i < caixas.Length; i++)
-            {
-                if (caixas[i] == null)
-                    return i;
-            }
-
-            return -1;
-        }
-
-        
     }
 }

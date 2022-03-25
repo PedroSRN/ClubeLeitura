@@ -13,7 +13,7 @@ namespace ClubeLeitura.ConsoleApp
             switch (tipoMensagem)
             {
                 case "Sucesso":
-                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
                     break;
 
                 case "Atencao":
@@ -21,7 +21,7 @@ namespace ClubeLeitura.ConsoleApp
                     break;
 
                 case "Erro":
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
                     break;
 
                 default:
